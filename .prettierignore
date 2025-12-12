@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# Database files
+*.sql
+
+# Generated files
+*.d.ts

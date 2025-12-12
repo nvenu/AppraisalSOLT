@@ -1,0 +1,176 @@
+# Employee Appraisal System
+
+A comprehensive narrative-based employee appraisal management system built with Next.js 14, featuring experience-level adaptive forms and detailed manager reviews.
+
+## 🚀 Features
+
+### 🔐 **Authentication & User Management**
+- Simple phone number and PIN-based authentication
+- Role-based access control (Employee/Manager)
+- Experience level classification (Junior/Mid-level/Senior)
+- Years of experience tracking (0-10+ years)
+
+### 📝 **Experience-Based Appraisal System**
+- **Dynamic Forms**: Different criteria based on experience level
+- **Narrative Responses**: Employees write detailed responses for each criteria
+- **Manager Reviews**: Managers rate individual responses and provide comprehensive feedback
+- **Progress Tracking**: Visual indicators and expandable history views
+
+### 🎯 **Experience Levels**
+- **Junior Developer** (0-2 years): Focus on learning, code quality, task completion
+- **Mid-level Developer** (3-6 years): Technical expertise, mentoring, project ownership
+- **Senior Developer** (7-10+ years): Leadership, strategy, stakeholder management
+
+## 🛠 Tech Stack
+
+- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **UI Components**: Shadcn UI, Lucide React icons
+- **Backend**: Supabase (PostgreSQL)
+- **Notifications**: Sonner
+- **Styling**: Tailwind CSS with custom design system
+
+## 📋 Quick Start
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/your-username/employee-appraisal-system.git
+cd employee-appraisal-system
+npm install
+```
+
+### 2. Environment Setup
+```bash
+cp .env.local.example .env.local
+```
+
+Edit `.env.local`:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Database Setup
+1. Create a new [Supabase](https://supabase.com) project
+2. Run the SQL commands from `supabase-setup.sql` in your Supabase SQL Editor
+3. Run the experience update from `supabase-experience-update.sql`
+
+### 4. Run Development Server
+```bash
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000)
+
+## 📊 Database Schema
+
+### Core Tables
+- **`profiles`**: User authentication and experience data
+- **`appraisals`**: Appraisal submissions with detailed responses
+- **`appraisal_criteria`**: Experience-level specific evaluation criteria
+
+### Key Features
+- JSONB storage for detailed responses and ratings
+- Experience level classification
+- Row Level Security (RLS) policies
+- Optimized indexes for performance
+
+## 🎯 Usage Guide
+
+### For Employees
+1. **Sign Up**: Register with experience level (0-10+ years)
+2. **Complete Appraisals**: Write detailed responses for experience-appropriate criteria
+3. **Track Progress**: View submission history and manager feedback
+4. **Review Ratings**: See detailed ratings for each criteria
+
+### For Managers
+1. **Review Submissions**: Read employee's detailed responses
+2. **Rate Responses**: Provide 1-5 ratings for each criteria
+3. **Give Feedback**: Write comprehensive overall feedback
+4. **Track Team**: Monitor all team member appraisals
+
+## 🏗 Project Structure
+
+```
+employee-appraisal-system/
+├── app/                          # Next.js App Router
+│   ├── dashboard/
+│   │   ├── employee/            # Employee dashboard
+│   │   └── manager/             # Manager dashboard
+│   ├── globals.css              # Global styles
+│   ├── layout.tsx               # Root layout
+│   └── page.tsx                 # Authentication page
+├── components/
+│   ├── ui/                      # Shadcn UI components
+│   └── ExperienceBasedAppraisalForm.tsx
+├── contexts/
+│   ├── AuthContext.tsx          # Full Supabase auth
+│   └── SimpleAuthContext.tsx    # Demo mode auth
+├── lib/
+│   ├── supabase.ts             # Supabase client & types
+│   └── utils.ts                # Utility functions
+├── supabase-setup.sql          # Initial database setup
+├── supabase-experience-update.sql # Experience features
+└── EXPERIENCE-BASED-FEATURES.md   # Detailed feature docs
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
+### Demo Mode
+The application includes a demo mode that works without Supabase:
+- Demo credentials: Phone `1234567890`, PIN `1234` (Employee)
+- Demo manager: Phone `0987654321`, PIN `5678` (Manager)
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+1. Push to GitHub
+2. Connect to Vercel
+3. Add environment variables
+4. Deploy
+
+### Other Platforms
+- Netlify
+- Railway
+- Docker deployment ready
+
+## 🔒 Security Features
+
+- Row Level Security (RLS) policies
+- Input validation and sanitization
+- Protected routes with middleware
+- Secure authentication flow
+- Environment variable protection
+
+## 📈 Performance
+
+- Optimized database queries
+- Efficient JSONB storage
+- Lazy loading components
+- Responsive design
+- Fast page transitions
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details
+
+## 🆘 Support
+
+- 📖 [Documentation](./EXPERIENCE-BASED-FEATURES.md)
+- 🐛 [Issues](https://github.com/your-username/employee-appraisal-system/issues)
+- 💬 [Discussions](https://github.com/your-username/employee-appraisal-system/discussions)
+
+---
+
+**Built with ❤️ using Next.js 14 and Supabase**
