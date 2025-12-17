@@ -54,3 +54,6 @@ pids
 
 # Optional eslint cache
 .eslintcache
+
+# Test scripts
+test-credentials.js

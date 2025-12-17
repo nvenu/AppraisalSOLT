@@ -23,24 +23,73 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Demo users for testing
-const demoUsers: User[] = [
+// Demo users for testing - All experience levels
+export const demoUsers: User[] = [
+  // Junior Developers (0-2 years)
   {
     id: '1',
-    phone: '1234567890',
-    pin: '1234',
-    full_name: 'John Doe',
+    phone: '1111111111',
+    pin: '1111',
+    full_name: 'Alex Junior',
     role: 'Employee',
-    years_of_experience: 2,
+    years_of_experience: 1,
     experience_level: 'Junior'
   },
   {
     id: '2',
-    phone: '0987654321',
-    pin: '5678',
-    full_name: 'Jane Smith',
-    role: 'Manager',
+    phone: '2222222222',
+    pin: '2222',
+    full_name: 'Sam Beginner',
+    role: 'Employee',
+    years_of_experience: 2,
+    experience_level: 'Junior'
+  },
+  // Mid-level Developers (3-6 years)
+  {
+    id: '3',
+    phone: '3333333333',
+    pin: '3333',
+    full_name: 'Taylor Mid-Level',
+    role: 'Employee',
+    years_of_experience: 4,
+    experience_level: 'Mid-level'
+  },
+  {
+    id: '4',
+    phone: '4444444444',
+    pin: '4444',
+    full_name: 'Jordan Experienced',
+    role: 'Employee',
+    years_of_experience: 6,
+    experience_level: 'Mid-level'
+  },
+  // Senior Developers (7-10+ years)
+  {
+    id: '5',
+    phone: '5555555555',
+    pin: '5555',
+    full_name: 'Morgan Senior',
+    role: 'Employee',
+    years_of_experience: 8,
+    experience_level: 'Senior'
+  },
+  {
+    id: '6',
+    phone: '6666666666',
+    pin: '6666',
+    full_name: 'Casey Expert',
+    role: 'Employee',
     years_of_experience: 10,
+    experience_level: 'Senior'
+  },
+  // Admin/Manager Account (accessed via admin login only)
+  {
+    id: '7',
+    phone: '7777777777',
+    pin: '7777',
+    full_name: 'System Administrator',
+    role: 'Manager',
+    years_of_experience: 15,
     experience_level: 'Senior'
   }
 ]
@@ -63,28 +112,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = async (phone: string, pin: string): Promise<boolean> => {
+    // Trim whitespace from inputs
+    const cleanPhone = phone.trim()
+    const cleanPin = pin.trim()
+    
     // Check demo users first
-    const demoUser = demoUsers.find(u => u.phone === phone && u.pin === pin)
+    const demoUser = demoUsers.find(u => u.phone === cleanPhone && u.pin === cleanPin)
     
     if (demoUser) {
       setUser(demoUser)
       localStorage.setItem('user', JSON.stringify(demoUser))
-      toast.success('Login successful!')
+      toast.success(`Welcome back, ${demoUser.full_name}!`)
       return true
     }
 
     // Check localStorage for custom users
     const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]')
-    const customUser = allUsers.find((u: User) => u.phone === phone && u.pin === pin)
+    const customUser = allUsers.find((u: User) => u.phone === cleanPhone && u.pin === cleanPin)
     
     if (customUser) {
       setUser(customUser)
       localStorage.setItem('user', JSON.stringify(customUser))
-      toast.success('Login successful!')
+      toast.success(`Welcome back, ${customUser.full_name}!`)
       return true
     }
 
-    toast.error('Invalid phone number or PIN')
+    toast.error('Invalid phone number or PIN. Please check your credentials.')
     return false
   }
 

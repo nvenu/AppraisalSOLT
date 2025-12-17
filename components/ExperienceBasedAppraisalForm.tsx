@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2, Star, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -51,6 +52,17 @@ export function ExperienceBasedAppraisalForm({ user, onSubmitSuccess }: Experien
   const [responses, setResponses] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  
+  // New goal-based fields
+  const [okrGoals, setOkrGoals] = useState<Record<string, string>>({
+    'Goal 1': '',
+    'Goal 2': '',
+    'Goal 3': ''
+  })
+  const [crossFunctionalImpact, setCrossFunctionalImpact] = useState('')
+  const [roadblocksSupport, setRoadblocksSupport] = useState('')
+  const [selfRating, setSelfRating] = useState<number>(3)
+  const [selfRatingJustification, setSelfRatingJustification] = useState('')
 
   const experienceLevel = user.experience_level || 'Junior'
 
@@ -85,7 +97,12 @@ export function ExperienceBasedAppraisalForm({ user, onSubmitSuccess }: Experien
       console.error('Error fetching criteria:', error)
       // Fallback to default criteria
       const fallbackCriteria = defaultCriteria[experienceLevel as keyof typeof defaultCriteria] || defaultCriteria.Junior
-      setCriteria(fallbackCriteria)
+      const fallbackWithIds = fallbackCriteria.map((c, index) => ({
+        ...c,
+        id: `fallback-${index}`,
+        experience_level: experienceLevel
+      }))
+      setCriteria(fallbackWithIds as AppraisalCriteria[])
       
       const initialResponses: Record<string, string> = {}
       fallbackCriteria.forEach((criterion) => {
@@ -109,43 +126,75 @@ export function ExperienceBasedAppraisalForm({ user, onSubmitSuccess }: Experien
     
     // Check if all required fields are filled
     const missingResponses = criteria.filter(criterion => !responses[criterion.criteria_name]?.trim())
-    if (!selfReview.trim() || !keyAchievements.trim() || missingResponses.length > 0) {
+    const missingGoals = Object.values(okrGoals).filter(goal => !goal.trim())
+    
+    if (!selfReview.trim() || !keyAchievements.trim() || missingResponses.length > 0 || 
+        !crossFunctionalImpact.trim() || !roadblocksSupport.trim() || 
+        !selfRatingJustification.trim() || missingGoals.length > 0) {
       toast.error('Please fill in all required fields')
       return
     }
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase
+      console.log('📝 Submitting appraisal with data:', {
+        employee_id: user.id,
+        experience_level: experienceLevel,
+        self_rating: selfRating,
+        status: 'submitted'
+      })
+
+      // Create new appraisal in Supabase
+      const { data, error } = await supabase
         .from('appraisals')
-        .insert([
-          {
-            employee_id: user.id,
-            self_review: selfReview.trim(),
-            key_achievements: keyAchievements.trim(),
-            experience_level: experienceLevel,
-            detailed_responses: responses,
-            status: 'submitted'
-          }
-        ])
+        .insert({
+          employee_id: user.id,
+          self_review: selfReview.trim(),
+          key_achievements: keyAchievements.trim(),
+          experience_level: experienceLevel,
+          detailed_responses: responses,
+          okr_goal_status: okrGoals,
+          cross_functional_impact: crossFunctionalImpact.trim(),
+          roadblocks_support: roadblocksSupport.trim(),
+          self_rating: selfRating,
+          self_rating_justification: selfRatingJustification.trim(),
+          status: 'submitted'
+        })
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Supabase error:', error)
+        throw error
+      }
 
+      console.log('✅ Appraisal submitted successfully:', data)
       toast.success('Appraisal submitted successfully!')
+      
       setSelfReview('')
       setKeyAchievements('')
+      setCrossFunctionalImpact('')
+      setRoadblocksSupport('')
+      setSelfRating(3)
+      setSelfRatingJustification('')
       
-      // Reset responses
+      // Reset responses and goals
       const resetResponses: Record<string, string> = {}
       criteria.forEach((criterion) => {
         resetResponses[criterion.criteria_name] = ''
       })
       setResponses(resetResponses)
+      setOkrGoals({ 'Goal 1': '', 'Goal 2': '', 'Goal 3': '' })
       
       onSubmitSuccess()
-    } catch (error) {
-      toast.error('Failed to submit appraisal')
-      console.error('Error submitting appraisal:', error)
+    } catch (error: any) {
+      console.error('❌ Error submitting appraisal:', error)
+      console.error('❌ Error details:', {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code
+      })
+      toast.error(`Failed to submit appraisal: ${error?.message || 'Unknown error'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -174,12 +223,98 @@ export function ExperienceBasedAppraisalForm({ user, onSubmitSuccess }: Experien
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Goal & Alignment Section */}
+          <div className="space-y-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center space-x-2">
+              <Star className="h-5 w-5 text-blue-600" />
+              <Label className="text-base font-semibold text-blue-900">Goals & Organizational Alignment</Label>
+            </div>
+            
+            {/* OKR/Goal Status */}
+            <div className="space-y-4">
+              <Label className="font-medium">Top 3 OKR/Goal Status *</Label>
+              <p className="text-sm text-gray-600">List your top 3 goals/OKRs for this review period and their current status.</p>
+              {Object.entries(okrGoals).map(([goalKey, goalValue]) => (
+                <div key={goalKey} className="space-y-2">
+                  <Label className="text-sm font-medium">{goalKey}</Label>
+                  <Textarea
+                    placeholder="Goal description and status (e.g., 'Improve API response time by 30% - Achieved: Reduced from 200ms to 140ms')"
+                    value={goalValue}
+                    onChange={(e) => setOkrGoals(prev => ({ ...prev, [goalKey]: e.target.value }))}
+                    className="min-h-[60px]"
+                    required
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Cross-Functional Impact */}
+            <div className="space-y-2">
+              <Label htmlFor="cross-functional-impact">Cross-Functional Impact *</Label>
+              <p className="text-sm text-gray-600">Describe one major contribution that positively affected another team(Technical team, QA team, Operations, etc.)</p>
+              <Textarea
+                id="cross-functional-impact"
+                placeholder="Example: Collaborated with Marketing team to implement analytics tracking, resulting in 25% better campaign insights..."
+                value={crossFunctionalImpact}
+                onChange={(e) => setCrossFunctionalImpact(e.target.value)}
+                className="min-h-[100px]"
+                required
+              />
+            </div>
+
+            {/* Roadblocks & Support */}
+            <div className="space-y-2">
+              <Label htmlFor="roadblocks-support">Roadblocks & Support Needed *</Label>
+              <p className="text-sm text-gray-600">What was your biggest obstacle, and what support do you need from management or other teams?</p>
+              <Textarea
+                id="roadblocks-support"
+                placeholder="Example: Limited access to production logs slowed debugging. Need read-only production access or better monitoring tools..."
+                value={roadblocksSupport}
+                onChange={(e) => setRoadblocksSupport(e.target.value)}
+                className="min-h-[100px]"
+                required
+              />
+            </div>
+
+            {/* Self-Rating */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="self-rating">Overall Self-Rating *</Label>
+                <Select value={selfRating.toString()} onValueChange={(value) => setSelfRating(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 - Needs Improvement</SelectItem>
+                    <SelectItem value="2">2 - Below Expectations</SelectItem>
+                    <SelectItem value="3">3 - Meets Expectations</SelectItem>
+                    <SelectItem value="4">4 - Exceeds Expectations</SelectItem>
+                    <SelectItem value="5">5 - Outstanding</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="self-rating-justification">Self-Rating Justification *</Label>
+              <p className="text-sm text-gray-600">Explain why you chose this rating, referencing specific achievements and examples.</p>
+              <Textarea
+                id="self-rating-justification"
+                placeholder="I rated myself a 4 because I exceeded my goals in X, Y, and Z areas. Specifically, I delivered..."
+                value={selfRatingJustification}
+                onChange={(e) => setSelfRatingJustification(e.target.value)}
+                className="min-h-[100px]"
+                required
+              />
+            </div>
+          </div>
+
           {/* Detailed Criteria Responses */}
           <div className="space-y-6">
             <div className="flex items-center space-x-2">
               <FileText className="h-5 w-5" />
-              <Label className="text-base font-semibold">Detailed Self-Assessment</Label>
+              <Label className="text-base font-semibold">Experience-Level Assessment</Label>
             </div>
             <p className="text-sm text-gray-600">
               Please provide detailed responses for each criteria. Your manager will review and rate these responses.

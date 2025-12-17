@@ -41,6 +41,11 @@ export type Appraisal = {
   experience_level?: string
   detailed_responses?: Record<string, string>
   manager_detailed_ratings?: Record<string, number>
+  okr_goal_status?: Record<string, string>
+  cross_functional_impact?: string
+  roadblocks_support?: string
+  self_rating?: number
+  self_rating_justification?: string
   profiles?: Profile
 }
 

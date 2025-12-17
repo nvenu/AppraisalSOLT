@@ -14,6 +14,8 @@ A comprehensive narrative-based employee appraisal management system built with 
 - **Dynamic Forms**: Different criteria based on experience level
 - **Narrative Responses**: Employees write detailed responses for each criteria
 - **Manager Reviews**: Managers rate individual responses and provide comprehensive feedback
+- **Complete History**: Both employees and managers can view all past appraisals
+- **Review History**: Managers have dedicated section for completed reviews
 - **Progress Tracking**: Visual indicators and expandable history views
 
 ### 🎯 **Experience Levels**
@@ -120,9 +122,28 @@ employee-appraisal-system/
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 
 ### Demo Mode
-The application includes a demo mode that works without Supabase:
-- Demo credentials: Phone `1234567890`, PIN `1234` (Employee)
-- Demo manager: Phone `0987654321`, PIN `5678` (Manager)
+The application includes comprehensive demo users for all experience levels:
+
+**Junior Developers:**
+- Alex Junior: `1111111111` / `1111` (1 year experience)
+- Sam Beginner: `2222222222` / `2222` (2 years experience)
+
+**Mid-level Developers:**
+- Taylor Mid-Level: `3333333333` / `3333` (4 years experience)  
+- Jordan Experienced: `4444444444` / `4444` (6 years experience)
+
+**Senior Developers:**
+- Morgan Senior: `5555555555` / `5555` (8 years experience)
+- Casey Expert: `6666666666` / `6666` (10+ years experience)
+
+**Admin/Manager Access:**
+- Visit `/admin` or click "Admin/Manager Login"
+- Username: `admin`
+- Password: `Admin@2024`
+
+**Security**: Only administrators can access the manager dashboard. Employees cannot sign up as managers.
+
+See `DEMO-CREDENTIALS.md` for complete testing guide.
 
 ## 🚀 Deployment
 
@@ -165,9 +186,49 @@ The application includes a demo mode that works without Supabase:
 
 MIT License - see [LICENSE](LICENSE) file for details
 
+## 🔧 Troubleshooting
+
+### Login Issues
+
+If you're having trouble logging in with demo credentials:
+
+1. **Clear Browser Storage**: 
+   - Open DevTools (F12) → Application/Storage tab
+   - Clear all localStorage data
+   - Refresh the page
+
+2. **Hard Refresh**: 
+   - Windows/Linux: `Ctrl+Shift+R`
+   - Mac: `Cmd+Shift+R`
+
+3. **Try Incognito/Private Mode**: 
+   - Open a new incognito/private window
+   - Navigate to `http://localhost:3000`
+   - Try logging in again
+
+4. **Verify Credentials**: 
+   - Ensure no spaces or dashes in phone numbers
+   - PINs are exactly 4 digits
+   - Copy-paste from DEMO-CREDENTIALS.md if needed
+
+### Quick Test Credentials
+- **Junior**: `1111111111` / `1111`
+- **Mid-level**: `3333333333` / `3333`
+- **Senior**: `5555555555` / `5555`
+- **Admin**: `admin` / `Admin@2024` (at `/admin`)
+
+## 📚 Documentation
+
+- �  [Quick Reference](./QUICK-REFERENCE.md) - Copy-paste credentials and quick fixes
+- 🧪 [Testing Guide](./TESTING-GUIDE.md) - Comprehensive testing scenarios
+- �  [Demo Credentials](./DEMO-CREDENTIALS.md) - All test accounts and workflows
+- 🤖 [AI Rating System](./AI-RATING-SYSTEM.md) - AI suggestion feature details
+- 📊 [Experience Features](./EXPERIENCE-BASED-FEATURES.md) - Experience-level documentation
+- 🚀 [Deployment Guide](./DEPLOYMENT.md) - Production deployment instructions
+- 🤝 [Contributing](./CONTRIBUTING.md) - Contribution guidelines
+
 ## 🆘 Support
 
-- 📖 [Documentation](./EXPERIENCE-BASED-FEATURES.md)
 - 🐛 [Issues](https://github.com/your-username/employee-appraisal-system/issues)
 - 💬 [Discussions](https://github.com/your-username/employee-appraisal-system/discussions)
 

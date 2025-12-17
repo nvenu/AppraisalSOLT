@@ -29,7 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (phone: string, pin: string): Promise<boolean> => {
     try {
-      // Try Supabase first
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -37,42 +36,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('pin', pin)
         .single()
 
-      if (data && !error) {
-        setUser(data)
-        localStorage.setItem('user', JSON.stringify(data))
-        toast.success('Login successful!')
-        return true
+      if (error || !data) {
+        toast.error('Invalid phone number or PIN')
+        return false
       }
 
-      // Fallback to demo data if Supabase fails
-      const { demoUsers } = await import('@/lib/demo-data')
-      const demoUser = demoUsers.find(u => u.phone === phone && u.pin === pin)
-      
-      if (demoUser) {
-        setUser(demoUser)
-        localStorage.setItem('user', JSON.stringify(demoUser))
-        toast.success('Login successful! (Demo Mode)')
-        return true
-      }
-
-      toast.error('Invalid phone number or PIN')
-      return false
+      setUser(data)
+      localStorage.setItem('user', JSON.stringify(data))
+      toast.success('Login successful!')
+      return true
     } catch (error) {
-      // Try demo mode on any error
-      try {
-        const { demoUsers } = await import('@/lib/demo-data')
-        const demoUser = demoUsers.find(u => u.phone === phone && u.pin === pin)
-        
-        if (demoUser) {
-          setUser(demoUser)
-          localStorage.setItem('user', JSON.stringify(demoUser))
-          toast.success('Login successful! (Demo Mode)')
-          return true
-        }
-      } catch (demoError) {
-        console.error('Demo mode failed:', demoError)
-      }
-      
       toast.error('Login failed')
       return false
     }
@@ -80,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (fullName: string, phone: string, pin: string, role: 'Employee' | 'Manager', yearsOfExperience: number = 0): Promise<boolean> => {
     try {
-      // Try Supabase first
+      // Check if phone already exists
       const { data: existingUser } = await supabase
         .from('profiles')
         .select('phone')
@@ -115,45 +88,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select()
         .single()
 
-      if (data && !error) {
-        setUser(data)
-        localStorage.setItem('user', JSON.stringify(data))
-        toast.success('Account created successfully!')
-        return true
-      }
-
-      // Fallback to demo mode
-      const newUser = {
-        id: Date.now().toString(),
-        phone,
-        pin,
-        full_name: fullName,
-        role
-      }
-
-      setUser(newUser)
-      localStorage.setItem('user', JSON.stringify(newUser))
-      toast.success('Account created successfully! (Demo Mode)')
-      return true
-    } catch (error) {
-      // Demo mode fallback
-      try {
-        const newUser = {
-          id: Date.now().toString(),
-          phone,
-          pin,
-          full_name: fullName,
-          role
-        }
-
-        setUser(newUser)
-        localStorage.setItem('user', JSON.stringify(newUser))
-        toast.success('Account created successfully! (Demo Mode)')
-        return true
-      } catch (demoError) {
+      if (error || !data) {
         toast.error('Signup failed')
         return false
       }
+
+      setUser(data)
+      localStorage.setItem('user', JSON.stringify(data))
+      toast.success('Account created successfully!')
+      return true
+    } catch (error) {
+      toast.error('Signup failed')
+      return false
     }
   }
 

@@ -24,8 +24,15 @@ export default function HomePage() {
   const [signupName, setSignupName] = useState('')
   const [signupPhone, setSignupPhone] = useState('')
   const [signupPin, setSignupPin] = useState('')
-  const [signupRole, setSignupRole] = useState<'Employee' | 'Manager'>('Employee')
+  const signupRole = 'Employee' // Always Employee - managers use admin login
   const [yearsOfExperience, setYearsOfExperience] = useState<number>(0)
+
+  const handleClearStorage = () => {
+    if (confirm('Clear all browser storage? This will log you out and reset demo data.')) {
+      localStorage.clear()
+      window.location.reload()
+    }
+  }
 
   useEffect(() => {
     if (!loading && user) {
@@ -84,9 +91,16 @@ export default function HomePage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img
+              src="/images/solt-logo.svg"
+              alt="Source of Life Technologies"
+              className="h-16 w-auto"
+            />
+          </div>
           <CardTitle className="text-2xl">Employee Appraisal System</CardTitle>
           <CardDescription>
-            Sign in to your account or create a new one
+            Source of Life Technologies
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,6 +138,36 @@ export default function HomePage() {
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Login
                 </Button>
+                <div className="text-center pt-2">
+                  <a 
+                    href="/admin" 
+                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Admin/Manager Login
+                  </a>
+                </div>
+                
+                {/* Demo Credentials Helper */}
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xs font-medium text-blue-900 mb-2">🧪 Demo Credentials:</p>
+                  <div className="space-y-1 text-xs text-blue-800">
+                    <div><strong>Junior:</strong> 1111111111 / 1111</div>
+                    <div><strong>Mid-level:</strong> 3333333333 / 3333</div>
+                    <div><strong>Senior:</strong> 5555555555 / 5555</div>
+                  </div>
+                  <p className="text-xs text-blue-700 mt-2 italic">
+                    See DEMO-CREDENTIALS.md for all test accounts
+                  </p>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-2 text-xs"
+                    onClick={handleClearStorage}
+                  >
+                    🔧 Clear Storage (Troubleshooting)
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
@@ -162,41 +206,29 @@ export default function HomePage() {
                     required
                   />
                 </div>
+                {/* Role is automatically set to Employee - no selection needed */}
+                <input type="hidden" value="Employee" />
                 <div className="space-y-2">
-                  <Label htmlFor="signup-role">Role</Label>
-                  <Select value={signupRole} onValueChange={(value: 'Employee' | 'Manager') => setSignupRole(value)}>
+                  <Label htmlFor="years-experience">Years of Experience</Label>
+                  <Select value={yearsOfExperience.toString()} onValueChange={(value) => setYearsOfExperience(parseInt(value))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select your role" />
+                      <SelectValue placeholder="Select years of experience" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Employee">Employee</SelectItem>
-                      <SelectItem value="Manager">Manager</SelectItem>
+                      <SelectItem value="0">0 - Fresh Graduate</SelectItem>
+                      <SelectItem value="1">1 Year</SelectItem>
+                      <SelectItem value="2">2 Years</SelectItem>
+                      <SelectItem value="3">3 Years</SelectItem>
+                      <SelectItem value="4">4 Years</SelectItem>
+                      <SelectItem value="5">5 Years</SelectItem>
+                      <SelectItem value="6">6 Years</SelectItem>
+                      <SelectItem value="7">7 Years</SelectItem>
+                      <SelectItem value="8">8 Years</SelectItem>
+                      <SelectItem value="9">9 Years</SelectItem>
+                      <SelectItem value="10">10+ Years</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                {signupRole === 'Employee' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="years-experience">Years of Experience</Label>
-                    <Select value={yearsOfExperience.toString()} onValueChange={(value) => setYearsOfExperience(parseInt(value))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select years of experience" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">0 - Fresh Graduate</SelectItem>
-                        <SelectItem value="1">1 Year</SelectItem>
-                        <SelectItem value="2">2 Years</SelectItem>
-                        <SelectItem value="3">3 Years</SelectItem>
-                        <SelectItem value="4">4 Years</SelectItem>
-                        <SelectItem value="5">5 Years</SelectItem>
-                        <SelectItem value="6">6 Years</SelectItem>
-                        <SelectItem value="7">7 Years</SelectItem>
-                        <SelectItem value="8">8 Years</SelectItem>
-                        <SelectItem value="9">9 Years</SelectItem>
-                        <SelectItem value="10">10+ Years</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Sign Up

@@ -35,6 +35,7 @@ export default function EmployeeDashboard() {
 
     setIsLoading(true)
     try {
+      // Get appraisals from Supabase
       const { data, error } = await supabase
         .from('appraisals')
         .select('*')
@@ -42,8 +43,10 @@ export default function EmployeeDashboard() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
+
       setAppraisals(data || [])
     } catch (error) {
+      console.error('Error fetching appraisals:', error)
       toast.error('Failed to fetch appraisals')
     } finally {
       setIsLoading(false)
@@ -167,7 +170,38 @@ export default function EmployeeDashboard() {
                       </div>
                       
                       {expandedAppraisal === appraisal.id && (
-                        <div className="border-t p-4 bg-gray-50">
+                        <div className="border-t p-4 bg-gray-50 space-y-4">
+                          {/* Goals & Self-Rating Summary */}
+                          {(appraisal.self_rating || appraisal.okr_goal_status) && (
+                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                              <h4 className="font-medium mb-3 text-blue-900">Your Goals & Self-Assessment</h4>
+                              
+                              {appraisal.self_rating && (
+                                <div className="mb-3">
+                                  <span className="text-sm text-gray-600">Self-Rating: </span>
+                                  <span className="font-bold text-blue-600">{appraisal.self_rating}/5</span>
+                                  <span className="text-sm text-gray-600 ml-2">
+                                    ({appraisal.self_rating === 5 ? 'Outstanding' :
+                                      appraisal.self_rating === 4 ? 'Exceeds Expectations' :
+                                      appraisal.self_rating === 3 ? 'Meets Expectations' :
+                                      appraisal.self_rating === 2 ? 'Below Expectations' : 'Needs Improvement'})
+                                  </span>
+                                </div>
+                              )}
+
+                              {appraisal.okr_goal_status && (
+                                <div className="space-y-2">
+                                  <span className="text-sm font-medium text-gray-700">Goal Status:</span>
+                                  {Object.entries(appraisal.okr_goal_status).map(([goal, status]) => (
+                                    <div key={goal} className="text-xs p-2 bg-white rounded border">
+                                      <span className="font-medium">{goal}:</span> {status}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           {appraisal.manager_detailed_ratings && (
                             <div className="mb-4">
                               <h4 className="font-medium mb-3">Manager's Detailed Ratings</h4>
