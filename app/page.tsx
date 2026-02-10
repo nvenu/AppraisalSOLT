@@ -146,28 +146,6 @@ export default function HomePage() {
                     Admin/Manager Login
                   </a>
                 </div>
-                
-                {/* Demo Credentials Helper */}
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-xs font-medium text-blue-900 mb-2">🧪 Demo Credentials:</p>
-                  <div className="space-y-1 text-xs text-blue-800">
-                    <div><strong>Junior:</strong> 1111111111 / 1111</div>
-                    <div><strong>Mid-level:</strong> 3333333333 / 3333</div>
-                    <div><strong>Senior:</strong> 5555555555 / 5555</div>
-                  </div>
-                  <p className="text-xs text-blue-700 mt-2 italic">
-                    See DEMO-CREDENTIALS.md for all test accounts
-                  </p>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-2 text-xs"
-                    onClick={handleClearStorage}
-                  >
-                    🔧 Clear Storage (Troubleshooting)
-                  </Button>
-                </div>
               </form>
             </TabsContent>
             
