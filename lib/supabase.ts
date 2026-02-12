@@ -4,18 +4,26 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+console.log('🔧 Supabase Configuration:')
+console.log('  URL:', supabaseUrl)
+console.log('  Key exists:', !!supabaseAnonKey)
+console.log('  Key length:', supabaseAnonKey?.length)
+
 // Create a mock client for demo mode
 const createMockClient = () => ({
   from: () => ({
-    select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: new Error('Demo mode') }) }) }),
-    insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: new Error('Demo mode') }) }) }),
-    update: () => ({ eq: () => Promise.resolve({ error: new Error('Demo mode') }) }),
+    select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: new Error('Demo mode - Supabase not configured') }) }) }),
+    insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: new Error('Demo mode - Supabase not configured') }) }) }),
+    update: () => ({ eq: () => Promise.resolve({ error: new Error('Demo mode - Supabase not configured') }) }),
     order: () => Promise.resolve({ data: [], error: null })
   })
 })
 
 // Use real Supabase client if credentials are available, otherwise use mock
-export const supabase = (supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('https://')) 
+const isConfigured = supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('https://')
+console.log('  Using:', isConfigured ? '✅ Real Supabase client' : '❌ Mock client (NOT CONNECTED)')
+
+export const supabase = isConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : createMockClient() as any
 
