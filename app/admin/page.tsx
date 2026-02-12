@@ -120,12 +120,6 @@ export default function AdminLoginPage() {
               </Link>
             </div>
           </form>
-          
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs text-blue-900 font-medium mb-2">Demo Credentials:</p>
-            <p className="text-xs text-blue-800">Username: <code className="bg-blue-100 px-1 py-0.5 rounded">admin</code></p>
-            <p className="text-xs text-blue-800">Password: <code className="bg-blue-100 px-1 py-0.5 rounded">Admin@2024</code></p>
-          </div>
         </CardContent>
       </Card>
     </div>
