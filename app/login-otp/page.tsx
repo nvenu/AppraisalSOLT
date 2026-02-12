@@ -13,9 +13,10 @@ import { toast } from 'sonner'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [step, setStep] = useState<'phone' | 'pin' | 'experience'>('phone')
+  const [step, setStep] = useState<'phone' | 'setpin' | 'login' | 'experience'>('phone')
   const [phone, setPhone] = useState('')
   const [pin, setPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
   const [yearsOfExperience, setYearsOfExperience] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
   const [userData, setUserData] = useState<any>(null)
@@ -45,37 +46,104 @@ export default function LoginPage() {
     }
 
     setUserData(user)
-    setStep('pin')
+
+    // Check if user has set PIN (pin is 'otp' means not set yet)
+    if (user.pin === 'otp') {
+      setStep('setpin')
+      toast.success('Please set your PIN')
+    } else {
+      setStep('login')
+    }
+    
     setIsLoading(false)
   }
 
-  const handlePinSubmit = async (e: React.FormEvent) => {
+  const handleSetPin = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (pin.length < 4) {
-      toast.error('Please enter PIN')
+      toast.error('PIN must be at least 4 digits')
+      return
+    }
+
+    if (pin !== confirmPin) {
+      toast.error('PINs do not match')
       return
     }
 
     setIsLoading(true)
-    
-    // Verify PIN (default is 7412)
-    if (pin !== '7412') {
-      toast.error('Invalid PIN. Default PIN is 7412')
+
+    // Update PIN in database
+    const { error } = await supabase
+      .from('profiles')
+      .update({ pin: pin })
+      .eq('phone', phone)
+
+    if (error) {
+      toast.error('Failed to set PIN')
       setIsLoading(false)
       return
     }
 
+    // Update local user data
+    userData.pin = pin
+    setUserData(userData)
+
     // Check if user has set years of experience
     if (!userData.years_of_experience || userData.years_of_experience === 0) {
       setStep('experience')
-      toast.success('PIN verified! Please set your years of experience.')
+      toast.success('PIN set! Please set your years of experience.')
     } else {
       // Login successful
       localStorage.setItem('user', JSON.stringify(userData))
-      toast.success('Login successful!')
+      toast.success('PIN set! Login successful!')
       
       if (userData.role === 'Employee') {
+        router.push('/dashboard/employee')
+      } else {
+        router.push('/dashboard/manager')
+      }
+    }
+    
+    setIsLoading(false)
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (pin.length < 4) {
+      toast.error('Please enter your PIN')
+      return
+    }
+
+    setIsLoading(true)
+
+    // Verify PIN
+    const { data: user, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('phone', phone)
+      .eq('pin', pin)
+      .single()
+
+    if (error || !user) {
+      toast.error('Invalid PIN')
+      setIsLoading(false)
+      return
+    }
+
+    setUserData(user)
+
+    // Check if user has set years of experience
+    if (!user.years_of_experience || user.years_of_experience === 0) {
+      setStep('experience')
+      toast.success('Login successful! Please set your years of experience.')
+    } else {
+      // Login successful
+      localStorage.setItem('user', JSON.stringify(user))
+      toast.success('Login successful!')
+      
+      if (user.role === 'Employee') {
         router.push('/dashboard/employee')
       } else {
         router.push('/dashboard/manager')
@@ -182,21 +250,62 @@ export default function LoginPage() {
             </form>
           )}
 
-          {step === 'pin' && (
-            <form onSubmit={handlePinSubmit} className="space-y-4">
+          {step === 'setpin' && (
+            <form onSubmit={handleSetPin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newpin">Set Your PIN</Label>
+                <Input
+                  id="newpin"
+                  type="password"
+                  placeholder="Enter PIN (minimum 4 digits)"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmpin">Confirm PIN</Label>
+                <Input
+                  id="confirmpin"
+                  type="password"
+                  placeholder="Re-enter PIN"
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                  required
+                />
+                <p className="text-xs text-gray-500">
+                  Create a PIN to secure your account
+                </p>
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Set PIN
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => setStep('phone')}
+              >
+                Back
+              </Button>
+            </form>
+          )}
+
+          {step === 'login' && (
+            <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="pin">Enter PIN</Label>
                 <Input
                   id="pin"
                   type="password"
-                  placeholder="Enter PIN (7412)"
+                  placeholder="Enter your PIN"
                   value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  maxLength={6}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   required
                 />
                 <p className="text-xs text-gray-500">
-                  Default PIN: 7412
+                  Phone: {phone}
                 </p>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
@@ -207,7 +316,7 @@ export default function LoginPage() {
                 type="button" 
                 variant="outline" 
                 className="w-full" 
-                onClick={() => setStep('phone')}
+                onClick={() => { setStep('phone'); setPin('') }}
               >
                 Change Phone Number
               </Button>
