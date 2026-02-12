@@ -8,21 +8,19 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
-import { sendOTP, verifyOTP } from '@/app/actions/otp.actions'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
-export default function OTPLoginPage() {
+export default function LoginPage() {
   const router = useRouter()
-  const [step, setStep] = useState<'phone' | 'otp' | 'experience'>('phone')
+  const [step, setStep] = useState<'phone' | 'pin' | 'experience'>('phone')
   const [phone, setPhone] = useState('')
-  const [otp, setOTP] = useState('')
-  const [sessionId, setSessionId] = useState('')
+  const [pin, setPin] = useState('')
   const [yearsOfExperience, setYearsOfExperience] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
   const [userData, setUserData] = useState<any>(null)
 
-  const handleSendOTP = async (e: React.FormEvent) => {
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validate phone number (10 digits)
@@ -46,77 +44,42 @@ export default function OTPLoginPage() {
       return
     }
 
-    // Send OTP
-    const result = await sendOTP(phone)
-    
-    if (result.success && result.sessionId) {
-      setSessionId(result.sessionId)
-      setStep('otp')
-      toast.success('OTP sent to your phone!')
-    } else {
-      toast.error(result.error || 'Failed to send OTP')
-    }
-    
+    setUserData(user)
+    setStep('pin')
     setIsLoading(false)
   }
 
-  const handleVerifyOTP = async (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (otp.length < 4) {
-      toast.error('Please enter OTP (4 or 6 digits)')
+    if (pin.length < 4) {
+      toast.error('Please enter PIN')
       return
     }
 
     setIsLoading(true)
     
-    let otpValid = false
-    
-    // Check if default OTP 7412 is used
-    if (otp === '7412') {
-      otpValid = true
-      toast.success('Default OTP accepted!')
-    } else if (otp.length === 6) {
-      // Verify OTP via 2Factor API
-      const result = await verifyOTP(sessionId, otp)
-      if (result.success) {
-        otpValid = true
-      }
+    // Verify PIN (default is 7412)
+    if (pin !== '7412') {
+      toast.error('Invalid PIN. Default PIN is 7412')
+      setIsLoading(false)
+      return
     }
-    
-    if (otpValid) {
-      // Get user data
-      const { data: user, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('phone', phone)
-        .single()
 
-      if (error || !user) {
-        toast.error('User not found')
-        setIsLoading(false)
-        return
-      }
-
-      setUserData(user)
-
-      // Check if user has set years of experience
-      if (!user.years_of_experience || user.years_of_experience === 0) {
-        setStep('experience')
-        toast.success('OTP verified! Please set your years of experience.')
-      } else {
-        // Login successful
-        localStorage.setItem('user', JSON.stringify(user))
-        toast.success('Login successful!')
-        
-        if (user.role === 'Employee') {
-          router.push('/dashboard/employee')
-        } else {
-          router.push('/dashboard/manager')
-        }
-      }
+    // Check if user has set years of experience
+    if (!userData.years_of_experience || userData.years_of_experience === 0) {
+      setStep('experience')
+      toast.success('PIN verified! Please set your years of experience.')
     } else {
-      toast.error('Invalid OTP. Try default OTP: 7412')
+      // Login successful
+      localStorage.setItem('user', JSON.stringify(userData))
+      toast.success('Login successful!')
+      
+      if (userData.role === 'Employee') {
+        router.push('/dashboard/employee')
+      } else {
+        router.push('/dashboard/manager')
+      }
     }
     
     setIsLoading(false)
@@ -190,7 +153,7 @@ export default function OTPLoginPage() {
         </CardHeader>
         <CardContent>
           {step === 'phone' && (
-            <form onSubmit={handleSendOTP} className="space-y-4">
+            <form onSubmit={handlePhoneSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
@@ -206,7 +169,7 @@ export default function OTPLoginPage() {
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Send OTP
+                Continue
               </Button>
               <div className="text-center pt-2">
                 <a 
@@ -219,26 +182,26 @@ export default function OTPLoginPage() {
             </form>
           )}
 
-          {step === 'otp' && (
-            <form onSubmit={handleVerifyOTP} className="space-y-4">
+          {step === 'pin' && (
+            <form onSubmit={handlePinSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="otp">Enter OTP</Label>
+                <Label htmlFor="pin">Enter PIN</Label>
                 <Input
-                  id="otp"
-                  type="text"
-                  placeholder="Enter OTP (or use 7412)"
-                  value={otp}
-                  onChange={(e) => setOTP(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  id="pin"
+                  type="password"
+                  placeholder="Enter PIN (7412)"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   maxLength={6}
                   required
                 />
                 <p className="text-xs text-gray-500">
-                  OTP sent to {phone} | Default OTP: 7412
+                  Default PIN: 7412
                 </p>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Verify OTP
+                Login
               </Button>
               <Button 
                 type="button" 

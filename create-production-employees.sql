@@ -1,6 +1,6 @@
 -- ============================================
 -- CREATE PRODUCTION EMPLOYEE ACCOUNTS
--- Source of Life Technologies - 15 Employees
+-- Source of Life Technologies - 16 Employees
 -- ============================================
 
 -- Delete test accounts (keep them commented if you want to keep for testing)
@@ -24,7 +24,8 @@ INSERT INTO profiles (phone, pin, full_name, role, years_of_experience, experien
   ('8406851952', 'otp', 'Sagar', 'Employee', 0, 'Junior'),
   ('8810620651', 'otp', 'Sanoj Chaudhary', 'Employee', 0, 'Junior'),
   ('9716066934', 'otp', 'Sumit Jha', 'Employee', 0, 'Junior'),
-  ('9899404505', 'otp', 'Tapas', 'Employee', 0, 'Junior')
+  ('9899404505', 'otp', 'Tapas', 'Employee', 0, 'Junior'),
+  ('9818216984', 'otp', 'Neeraj Venu', 'Employee', 0, 'Junior')
 ON CONFLICT (phone) DO UPDATE SET
   full_name = EXCLUDED.full_name,
   pin = EXCLUDED.pin;
@@ -36,7 +37,8 @@ FROM profiles
 WHERE phone IN (
   '8271918008', '7065682533', '8800105387', '8448168107', '8800490391',
   '8053206785', '8303779699', '7289819231', '9756346959', '8935014580',
-  '8130179307', '8406851952', '8810620651', '9716066934', '9899404505'
+  '8130179307', '8406851952', '8810620651', '9716066934', '9899404505',
+  '9818216984'
 )
 ORDER BY full_name;
 
