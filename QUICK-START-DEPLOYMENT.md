@@ -185,35 +185,4 @@ That's it! Vercel handles the rest.
 ## Need Help?
 
 ### Documentation
-- Full guide: `PRODUCTION-DEPLOYMENT-GUIDE.md`
-- Detailed Plesk guide: `PLESK-DEPLOYMENT-GUIDE.md`
-- Checklist: `DEPLOYMENT-CHECKLIST.md`
-- DNS setup: `GODADDY-DNS-SETUP.md`
-
-### Support
-- Vercel: https://vercel.com/docs
-- Supabase: https://supabase.com/docs
-- Your repo: https://github.com/nvenu/AppraisalSOLT
-
----
-
-## Summary
-
-1. ✅ **Vercel** (5 min): Sign up → Import → Add env vars → Deploy
-2. ✅ **GoDaddy** (5 min): Add CNAME record
-3. ✅ **Vercel** (2 min): Add custom domain
-4. ⏳ **Wait** (30-60 min): DNS propagation
-5. 🎉 **Done**: Visit appraisal.solifetec.com
-
-**Total active time: ~15 minutes**
-**Total wait time: ~30-60 minutes**
-
----
-
-## Ready to Start?
-
-Go to: **https://vercel.com/signup**
-
-Click "Continue with GitHub" and follow Step 1 above!
-
-🚀 You'll be live in less than an hour!
+- Full guide: `PRODUCTION-DEPLOYMENT-GUIDE

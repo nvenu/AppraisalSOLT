@@ -29,6 +29,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (phone: string, pin: string): Promise<boolean> => {
     try {
+      console.log('🔐 Attempting login with phone:', phone)
+      console.log('📡 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -36,7 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('pin', pin)
         .single()
 
+      console.log('📊 Login response:', { data, error })
+
       if (error || !data) {
+        console.error('❌ Login error:', error)
         toast.error('Invalid phone number or PIN')
         return false
       }
@@ -46,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast.success('Login successful!')
       return true
     } catch (error) {
+      console.error('❌ Login exception:', error)
       toast.error('Login failed')
       return false
     }
