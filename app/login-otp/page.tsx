@@ -1,0 +1,280 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Loader2 } from 'lucide-react'
+import { sendOTP, verifyOTP } from '@/app/actions/otp.actions'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
+
+export default function OTPLoginPage() {
+  const router = useRouter()
+  const [step, setStep] = useState<'phone' | 'otp' | 'experience'>('phone')
+  const [phone, setPhone] = useState('')
+  const [otp, setOTP] = useState('')
+  const [sessionId, setSessionId] = useState('')
+  const [yearsOfExperience, setYearsOfExperience] = useState<number>(0)
+  const [isLoading, setIsLoading] = useState(false)
+  const [userData, setUserData] = useState<any>(null)
+
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Validate phone number (10 digits)
+    if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+      toast.error('Please enter a valid 10-digit phone number')
+      return
+    }
+
+    setIsLoading(true)
+    
+    // Check if user exists
+    const { data: user, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('phone', phone)
+      .single()
+
+    if (error || !user) {
+      toast.error('Phone number not registered. Please contact HR.')
+      setIsLoading(false)
+      return
+    }
+
+    // Send OTP
+    const result = await sendOTP(phone)
+    
+    if (result.success && result.sessionId) {
+      setSessionId(result.sessionId)
+      setStep('otp')
+      toast.success('OTP sent to your phone!')
+    } else {
+      toast.error(result.error || 'Failed to send OTP')
+    }
+    
+    setIsLoading(false)
+  }
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (otp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP')
+      return
+    }
+
+    setIsLoading(true)
+    
+    // Verify OTP
+    const result = await verifyOTP(sessionId, otp)
+    
+    if (result.success) {
+      // Get user data
+      const { data: user, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('phone', phone)
+        .single()
+
+      if (error || !user) {
+        toast.error('User not found')
+        setIsLoading(false)
+        return
+      }
+
+      setUserData(user)
+
+      // Check if user has set years of experience
+      if (!user.years_of_experience || user.years_of_experience === 0) {
+        setStep('experience')
+        toast.success('OTP verified! Please set your years of experience.')
+      } else {
+        // Login successful
+        localStorage.setItem('user', JSON.stringify(user))
+        toast.success('Login successful!')
+        
+        if (user.role === 'Employee') {
+          router.push('/dashboard/employee')
+        } else {
+          router.push('/dashboard/manager')
+        }
+      }
+    } else {
+      toast.error(result.error || 'Invalid OTP')
+    }
+    
+    setIsLoading(false)
+  }
+
+  const handleSetExperience = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (yearsOfExperience === 0) {
+      toast.error('Please select your years of experience')
+      return
+    }
+
+    setIsLoading(true)
+
+    // Determine experience level
+    let experienceLevel = 'Junior'
+    if (yearsOfExperience >= 7) {
+      experienceLevel = 'Senior'
+    } else if (yearsOfExperience >= 3) {
+      experienceLevel = 'Mid-level'
+    }
+
+    // Update user profile
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        years_of_experience: yearsOfExperience,
+        experience_level: experienceLevel
+      })
+      .eq('phone', phone)
+      .select()
+      .single()
+
+    if (error || !data) {
+      toast.error('Failed to update experience')
+      setIsLoading(false)
+      return
+    }
+
+    // Login successful
+    localStorage.setItem('user', JSON.stringify(data))
+    toast.success('Profile updated! Redirecting...')
+    
+    setTimeout(() => {
+      if (data.role === 'Employee') {
+        router.push('/dashboard/employee')
+      } else {
+        router.push('/dashboard/manager')
+      }
+    }, 1000)
+    
+    setIsLoading(false)
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img
+              src="/images/solt-logo.svg"
+              alt="Source of Life Technologies"
+              className="h-16 w-auto"
+            />
+          </div>
+          <CardTitle className="text-2xl">Employee Appraisal System</CardTitle>
+          <CardDescription>
+            Source of Life Technologies
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {step === 'phone' && (
+            <form onSubmit={handleSendOTP} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="Enter 10-digit phone number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  maxLength={10}
+                  required
+                />
+                <p className="text-xs text-gray-500">Enter your registered phone number</p>
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Send OTP
+              </Button>
+              <div className="text-center pt-2">
+                <a 
+                  href="/admin" 
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Admin/Manager Login
+                </a>
+              </div>
+            </form>
+          )}
+
+          {step === 'otp' && (
+            <form onSubmit={handleVerifyOTP} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="otp">Enter OTP</Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  placeholder="Enter 6-digit OTP"
+                  value={otp}
+                  onChange={(e) => setOTP(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  maxLength={6}
+                  required
+                />
+                <p className="text-xs text-gray-500">OTP sent to {phone}</p>
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Verify OTP
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => setStep('phone')}
+              >
+                Change Phone Number
+              </Button>
+            </form>
+          )}
+
+          {step === 'experience' && (
+            <form onSubmit={handleSetExperience} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="experience">Years of Experience</Label>
+                <Select 
+                  value={yearsOfExperience.toString()} 
+                  onValueChange={(value) => setYearsOfExperience(parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your years of experience" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0 - Fresh Graduate</SelectItem>
+                    <SelectItem value="1">1 Year</SelectItem>
+                    <SelectItem value="2">2 Years</SelectItem>
+                    <SelectItem value="3">3 Years</SelectItem>
+                    <SelectItem value="4">4 Years</SelectItem>
+                    <SelectItem value="5">5 Years</SelectItem>
+                    <SelectItem value="6">6 Years</SelectItem>
+                    <SelectItem value="7">7 Years</SelectItem>
+                    <SelectItem value="8">8 Years</SelectItem>
+                    <SelectItem value="9">9 Years</SelectItem>
+                    <SelectItem value="10">10+ Years</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500">
+                  This will determine your appraisal criteria
+                </p>
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Continue
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
