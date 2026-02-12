@@ -63,17 +63,28 @@ export default function OTPLoginPage() {
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (otp.length !== 6) {
-      toast.error('Please enter a valid 6-digit OTP')
+    if (otp.length < 4) {
+      toast.error('Please enter OTP (4 or 6 digits)')
       return
     }
 
     setIsLoading(true)
     
-    // Verify OTP
-    const result = await verifyOTP(sessionId, otp)
+    let otpValid = false
     
-    if (result.success) {
+    // Check if default OTP 7412 is used
+    if (otp === '7412') {
+      otpValid = true
+      toast.success('Default OTP accepted!')
+    } else if (otp.length === 6) {
+      // Verify OTP via 2Factor API
+      const result = await verifyOTP(sessionId, otp)
+      if (result.success) {
+        otpValid = true
+      }
+    }
+    
+    if (otpValid) {
       // Get user data
       const { data: user, error } = await supabase
         .from('profiles')
@@ -105,7 +116,7 @@ export default function OTPLoginPage() {
         }
       }
     } else {
-      toast.error(result.error || 'Invalid OTP')
+      toast.error('Invalid OTP. Try default OTP: 7412')
     }
     
     setIsLoading(false)
@@ -215,13 +226,15 @@ export default function OTPLoginPage() {
                 <Input
                   id="otp"
                   type="text"
-                  placeholder="Enter 6-digit OTP"
+                  placeholder="Enter OTP (or use 7412)"
                   value={otp}
                   onChange={(e) => setOTP(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   maxLength={6}
                   required
                 />
-                <p className="text-xs text-gray-500">OTP sent to {phone}</p>
+                <p className="text-xs text-gray-500">
+                  OTP sent to {phone} | Default OTP: 7412
+                </p>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
